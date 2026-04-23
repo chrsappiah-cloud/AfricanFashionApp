@@ -1,0 +1,4 @@
+AUTH_JWT_SECRET="replace-with-long-random-secret"
+UPLOAD_TOKEN_SECRET="replace-with-second-long-random-secret"
+# Optional public asset base URL if serving R2 through custom domain:
+# PUBLIC_ASSET_BASE_URL="https://assets.yourdomain.com"

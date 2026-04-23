@@ -23,14 +23,46 @@ final class AfricanFashionAppUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testOnboardingTabsAndUploadStudioRouting() throws {
         let app = XCUIApplication()
+        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        completeOnboardingIfNeeded(app)
+
+        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.tabBars.buttons["Catalog"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Cart"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Saved"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Profile"].exists)
+
+        app.tabBars.buttons["Profile"].tap()
+        XCTAssertTrue(app.buttons["Upload studio"].waitForExistence(timeout: 8))
+        app.buttons["Upload studio"].tap()
+
+        XCTAssertTrue(app.navigationBars["Upload Studio"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Check backend + middleware now"].exists)
+        XCTAssertTrue(app.buttons["Probe upload endpoint"].exists)
+    }
+
+    @MainActor
+    func testAuthValidationShowsErrorForMissingCredentials() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
+        app.launch()
+
+        completeOnboardingIfNeeded(app)
+
+        app.tabBars.buttons["Profile"].tap()
+        let signInButton = app.buttons["Sign in"]
+        XCTAssertTrue(signInButton.waitForExistence(timeout: 8))
+        signInButton.tap()
+
+        let continueButton = app.buttons["Continue"]
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 8))
+        continueButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Enter email and password."].waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -38,6 +70,13 @@ final class AfricanFashionAppUITests: XCTestCase {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
+        }
+    }
+
+    private func completeOnboardingIfNeeded(_ app: XCUIApplication) {
+        let enterAtelier = app.buttons["Enter the atelier"]
+        if enterAtelier.waitForExistence(timeout: 3) {
+            enterAtelier.tap()
         }
     }
 }

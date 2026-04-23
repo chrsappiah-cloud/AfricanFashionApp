@@ -1,0 +1,14 @@
+# Xcode / tooling — ignore real DerivedData under the app tree, but keep the tracked marker
+# so …/AfricanFashionApp/.derivedData exists for Xcode paths that still reference it.
+AfricanFashionApp/.derivedData/**
+!AfricanFashionApp/.derivedData/.DO_NOT_USE_AS_XCODE_DERIVED_DATA
+
+# Optional workspace-relative DerivedData (if ever enabled); keep out of git
+DerivedData/
+
+# Xcode user-specific files
+*.xcuserstate
+*.xcuserdata/
+**/xcuserdata/
+
+.DS_Store
