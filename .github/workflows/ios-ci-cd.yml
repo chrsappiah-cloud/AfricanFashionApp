@@ -9,59 +9,119 @@ on:
       - "v*"
   workflow_dispatch:
 
+concurrency:
+  group: afa-ios-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  ci:
-    name: Build and Test
-    runs-on: macos-latest
+  ios:
+    name: ios
+    runs-on: macos-15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Show Xcode version
+      - name: Xcode version
         run: xcodebuild -version
 
-      - name: Build (Debug, iOS Simulator)
+      - name: Build (generic iOS Simulator)
         run: |
-          xcodebuild \
+          set -eo pipefail
+          xcodebuild build \
             -project "AfricanFashionApp.xcodeproj" \
             -scheme "AfricanFashionApp" \
             -configuration Debug \
-            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            build
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_STYLE=Automatic
 
-      - name: Test (iOS Simulator)
+      - name: Pick simulator (UDID)
+        id: sim
         run: |
-          xcodebuild \
+          set -eo pipefail
+          xcrun simctl list devices available
+          JSON=$(xcrun simctl list devices available -j)
+          UDID=""
+          NAME=""
+          for want in "iPhone 16" "iPhone 16 Pro" "iPhone 15" "iPhone 17" "iPhone 17 Pro" "iPhone SE (3rd generation)"; do
+            u=$(echo "$JSON" | jq -r --arg n "$want" '
+              [.devices | to_entries[] | .value[]?
+                | objects
+                | select((.isAvailable == true) and (.name == $n) and ((.udid | type) == "string") and (.udid != ""))]
+              | .[0].udid // empty
+            ')
+            if [[ -n "$u" && "$u" != "null" ]]; then
+              UDID="$u"
+              NAME="$want"
+              break
+            fi
+          done
+          if [[ -z "$UDID" ]]; then
+            pick=$(echo "$JSON" | jq -c '
+              [.devices | to_entries[] | .value[]?
+                | objects
+                | select((.isAvailable == true) and ((.udid | type) == "string") and (.name | test("iPhone")))]
+              | .[0] // empty
+            ')
+            if [[ -n "$pick" && "$pick" != "null" ]]; then
+              UDID=$(echo "$pick" | jq -r '.udid // empty')
+              NAME=$(echo "$pick" | jq -r '.name // empty')
+            fi
+          fi
+          if [[ -z "$UDID" ]]; then
+            echo "No available iOS Simulator device with a UDID was found." >&2
+            exit 1
+          fi
+          {
+            echo "name=$NAME"
+            echo "udid=$UDID"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Boot simulator
+        run: |
+          set -eo pipefail
+          UDID="${{ steps.sim.outputs.udid }}"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Unit tests (AfricanFashionAppTests)
+        run: |
+          set -eo pipefail
+          xcodebuild test \
             -project "AfricanFashionApp.xcodeproj" \
             -scheme "AfricanFashionApp" \
             -configuration Debug \
-            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -destination-timeout 300 \
+            -parallel-testing-enabled NO \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            test
+            -only-testing:AfricanFashionAppTests \
+            -resultBundlePath "${{ runner.temp }}/AfricanFashionUnitTests.xcresult"
 
   cd:
-    name: Release Archive Artifact
-    runs-on: macos-latest
-    needs: ci
+    name: cd
+    runs-on: macos-15
+    needs: ios
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Archive (unsigned)
         run: |
-          xcodebuild \
+          set -eo pipefail
+          xcodebuild archive \
             -project "AfricanFashionApp.xcodeproj" \
             -scheme "AfricanFashionApp" \
             -configuration Release \
             -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/AfricanFashionApp.xcarchive" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            CODE_SIGNING_ALLOWED=NO \
-            archive
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataCD" \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
