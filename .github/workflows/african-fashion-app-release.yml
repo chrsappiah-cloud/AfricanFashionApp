@@ -1,0 +1,42 @@
+# AfricanFashionApp release builds (this repo only). Not used by WCSArtGalleryApp.
+name: AfricanFashionApp Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: african-fashion-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    name: archive
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archive (unsigned)
+        run: |
+          set -eo pipefail
+          xcodebuild archive \
+            -project "AfricanFashionApp.xcodeproj" \
+            -scheme "AfricanFashionApp" \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/AfricanFashionApp.xcarchive" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataCD" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: african-fashion-ios-release
+          path: |
+            ${{ runner.temp }}/AfricanFashionApp.xcarchive
