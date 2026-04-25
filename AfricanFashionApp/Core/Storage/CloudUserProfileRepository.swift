@@ -7,6 +7,7 @@ import Foundation
 import SwiftData
 
 enum CloudUserProfileRepository {
+    @MainActor
     static func upsertPrimary(appState: AppState, into context: ModelContext) throws {
         let targetKey = CloudScopeKeys.userProfile
         var descriptor = FetchDescriptor<CloudUserProfile>(
@@ -32,6 +33,7 @@ enum CloudUserProfileRepository {
         try context.save()
     }
 
+    @MainActor
     private static func apply(appState: AppState, to profile: CloudUserProfile) {
         profile.cloudIdentityUUIDString = appState.cloudIdentityUUID.uuidString
         profile.displayName = appState.profileDisplayName
