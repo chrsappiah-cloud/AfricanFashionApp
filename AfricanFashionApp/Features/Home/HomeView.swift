@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = HomeViewModel()
 
     var body: some View {
@@ -110,6 +111,34 @@ struct HomeView: View {
                             }
                         }
                     }
+                }
+                .padding(.horizontal, 4)
+
+                GlassCard {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Quick actions")
+                            .font(DesignSystem.Typography.headline())
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+                        HStack(spacing: 10) {
+                            Button {
+                                appState.selectedTab = .catalog
+                            } label: {
+                                Label("Shop catalog", systemImage: "square.grid.2x2")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(DesignSystem.Colors.accent)
+
+                            Button {
+                                appState.selectedTab = .discussion
+                            } label: {
+                                Label("Open discussion", systemImage: "bubble.left.and.bubble.right")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal, 4)
 
@@ -298,6 +327,7 @@ struct HomeView: View {
 #Preview {
     NavigationStack {
         HomeView()
+            .environmentObject(AppState())
             .environmentObject(CartStore())
     }
 }

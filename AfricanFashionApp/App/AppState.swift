@@ -10,6 +10,7 @@ import SwiftUI
 enum AppTab: String, CaseIterable, Identifiable {
     case home
     case catalog
+    case discussion
     case cart
     case wishlist
     case profile
@@ -20,6 +21,7 @@ enum AppTab: String, CaseIterable, Identifiable {
         switch self {
         case .home: "Home"
         case .catalog: "Catalog"
+        case .discussion: "Discussion"
         case .cart: "Cart"
         case .wishlist: "Saved"
         case .profile: "Profile"
@@ -30,6 +32,7 @@ enum AppTab: String, CaseIterable, Identifiable {
         switch self {
         case .home: "sparkles"
         case .catalog: "square.grid.2x2"
+        case .discussion: "bubble.left.and.bubble.right"
         case .cart: "bag"
         case .wishlist: "heart"
         case .profile: "person.crop.circle"

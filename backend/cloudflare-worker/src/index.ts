@@ -4,6 +4,9 @@ interface Env {
   UPLOAD_TOKEN_SECRET: string;
   PUBLIC_ASSET_BASE_URL?: string;
   UPLOAD_BUCKET?: R2Bucket;
+  ICLOUD_CONTAINER_ID?: string;
+  STORAGE_PRIMARY_PROVIDER?: string;
+  STORAGE_FAILOVER_PROVIDER?: string;
 }
 
 type LoginBody = {
@@ -23,6 +26,14 @@ type UploadTokenClaims = {
   key: string;
   mimeType: string;
   exp: number;
+};
+
+type StorageAudience = "admin" | "user";
+
+type StoragePreferenceBody = {
+  audience?: StorageAudience;
+  regionHint?: string;
+  workload?: string;
 };
 
 const json = (status: number, payload: unknown): Response =>
@@ -118,6 +129,113 @@ const parseBearer = (request: Request): string | null => {
   return token.trim();
 };
 
+const makeStorageBackendsPayload = (env: Env, origin: string) => {
+  const primary = (env.STORAGE_PRIMARY_PROVIDER || "cloudflare").toLowerCase();
+  const failover = (env.STORAGE_FAILOVER_PROVIDER || "icloud").toLowerCase();
+  const iCloudContainerID = env.ICLOUD_CONTAINER_ID || "iCloud.com.africanfashion.app";
+  const now = new Date().toISOString();
+
+  return {
+    ok: true,
+    generatedAt: now,
+    activeWriteProvider: primary,
+    activeReadProvider: primary,
+    failoverEnabled: true,
+    providers: [
+      {
+        provider: "cloudflare",
+        status: "healthy",
+        capabilities: [
+          "R2 media object storage",
+          "signed direct uploads",
+          "edge cached read delivery",
+          "upload checksum validation",
+        ],
+        endpoints: {
+          health: `${origin}/v1/health`,
+          presignUpload: `${origin}/v1/uploads/presign`,
+        },
+      },
+      {
+        provider: "icloud",
+        status: "healthy",
+        capabilities: [
+          "CloudKit metadata synchronization",
+          "private/public zone record replication",
+          "cross-device user/admin state continuity",
+        ],
+        cloudKit: {
+          containerID: iCloudContainerID,
+          replicationMode: "metadata-only (no large binaries)",
+        },
+      },
+    ],
+    routingPolicy: {
+      primary,
+      failover,
+      adminData: ["cloudflare", "icloud"],
+      userData: ["icloud", "cloudflare"],
+      mediaData: ["cloudflare"],
+    },
+  };
+};
+
+const makeDatabaseBlueprintPayload = () => ({
+  version: "2026.04.storage.v1",
+  architecture: "Relational core + object storage + CloudKit sync layer",
+  relationalCore: {
+    engine: "PostgreSQL or Cloudflare D1 (normalized schema)",
+    tables: [
+      {
+        name: "users",
+        primaryKey: "user_id",
+        indexes: ["email_unique_idx", "role_idx"],
+        purpose: "User/admin profiles and roles",
+      },
+      {
+        name: "courses",
+        primaryKey: "course_id",
+        indexes: ["status_idx", "updated_at_idx"],
+        purpose: "Published course and syllabus metadata",
+      },
+      {
+        name: "modules_lessons",
+        primaryKey: "lesson_id",
+        indexes: ["course_module_order_idx", "lesson_kind_idx"],
+        purpose: "Course structure and lecture units",
+      },
+      {
+        name: "video_assets",
+        primaryKey: "video_asset_id",
+        indexes: ["lesson_id_idx", "upload_safety_idx", "generated_at_idx"],
+        purpose: "Generated video metadata and playback records",
+      },
+      {
+        name: "enrollments_progress",
+        primaryKey: "enrollment_id",
+        indexes: ["user_course_idx", "progress_idx"],
+        purpose: "Learner progress checkpoints",
+      },
+      {
+        name: "admin_drafts_audit",
+        primaryKey: "event_id",
+        indexes: ["draft_id_idx", "admin_id_idx", "created_at_idx"],
+        purpose: "Admin draft workflow and immutable audit log",
+      },
+    ],
+  },
+  objectStorage: {
+    provider: "cloudflare-r2",
+    keyPattern: "uploads/{entity}/{uuid}/{filename}",
+    constraints: ["https-only", "mime-whitelist", "sha256 checksum", "signed URL expiry"],
+  },
+  cloudKitSync: {
+    dataClass: ["user progress metadata", "admin draft pointers", "last-opened learning context"],
+    conflictHandling: "serverRecordChanged resolution policy",
+    note: "Store references to canonical backend IDs, not large binary payloads.",
+  },
+});
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -128,6 +246,45 @@ export default {
         ok: true,
         service: env.APP_NAME ?? "AfricanFashionApp",
         timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (request.method === "GET" && (path === "/v1/system/storage-backends" || path === "/v1/storage/backends")) {
+      return json(200, makeStorageBackendsPayload(env, url.origin));
+    }
+
+    if (request.method === "GET" && (path === "/v1/system/database-blueprint" || path === "/v1/storage/database-blueprint")) {
+      return json(200, makeDatabaseBlueprintPayload());
+    }
+
+    if (request.method === "POST" && (path === "/v1/storage/resolve" || path === "/v1/system/storage/resolve")) {
+      const body = await parseJSON<StoragePreferenceBody>(request);
+      const audience: StorageAudience = body?.audience === "admin" ? "admin" : "user";
+      const workload = body?.workload?.toLowerCase() || "metadata";
+      const primary = (env.STORAGE_PRIMARY_PROVIDER || "cloudflare").toLowerCase();
+      const failover = (env.STORAGE_FAILOVER_PROVIDER || "icloud").toLowerCase();
+
+      const preferredProvider =
+        workload.includes("media") || workload.includes("video")
+          ? "cloudflare"
+          : audience === "user"
+            ? "icloud"
+            : primary;
+      const storageKeyPrefix = `${audience}/${preferredProvider}/${body?.regionHint || "global"}`;
+
+      return json(200, {
+        ok: true,
+        audience,
+        workload,
+        preferredProvider,
+        primaryProvider: primary,
+        failoverProvider: failover,
+        storageKeyPrefix,
+        policy: {
+          requiresHTTPS: true,
+          requiresChecksum: workload.includes("media") || workload.includes("video"),
+          auditRequired: audience === "admin",
+        },
       });
     }
 

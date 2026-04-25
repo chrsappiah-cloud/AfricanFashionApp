@@ -32,6 +32,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5E629D0C2F99CDA4005A6995 /* AfricanFashionApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AFA000010000000000000001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = AfricanFashionApp;
 			sourceTree = "<group>";
 		};
@@ -46,6 +49,17 @@
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AFA000010000000000000001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				APPLE_PRODUCTION.md,
+				wcs-learning-platform/,
+			);
+			target = 5E629D092F99CDA4005A6995 /* AfricanFashionApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5E629D072F99CDA4005A6995 /* Frameworks */ = {
@@ -401,6 +415,34 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = TM2WG7HH96;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.md",
+					"*.js",
+					"*.json",
+					"*.map",
+					".babelrc",
+					".editorconfig",
+					".eslint*",
+					".git*",
+					".npm*",
+					".nvmrc",
+					"wcs-learning-platform",
+					"wcs-learning-platform/*",
+					"wcs-learning-platform/**",
+					"node_modules",
+					"node_modules/*",
+					"node_modules/**",
+				);
+				EXCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = (
+					"$(inherited)",
+					"*.nib",
+					"*.lproj",
+					"*.framework",
+					wcs-learning-platform,
+					"wcs-learning-platform/*",
+					node_modules,
+					"node_modules/*",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Wendy's-AfricanFash";
@@ -432,6 +474,34 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = TM2WG7HH96;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.md",
+					"*.js",
+					"*.json",
+					"*.map",
+					".babelrc",
+					".editorconfig",
+					".eslint*",
+					".git*",
+					".npm*",
+					".nvmrc",
+					"wcs-learning-platform",
+					"wcs-learning-platform/*",
+					"wcs-learning-platform/**",
+					"node_modules",
+					"node_modules/*",
+					"node_modules/**",
+				);
+				EXCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = (
+					"$(inherited)",
+					"*.nib",
+					"*.lproj",
+					"*.framework",
+					wcs-learning-platform,
+					"wcs-learning-platform/*",
+					node_modules,
+					"node_modules/*",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Wendy's-AfricanFash";

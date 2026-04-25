@@ -4,3 +4,6 @@ compatibility_date = "2026-04-23"
 
 [vars]
 APP_NAME = "AfricanFashionApp"
+ICLOUD_CONTAINER_ID = "iCloud.com.africanfashion.app"
+STORAGE_PRIMARY_PROVIDER = "cloudflare"
+STORAGE_FAILOVER_PROVIDER = "icloud"

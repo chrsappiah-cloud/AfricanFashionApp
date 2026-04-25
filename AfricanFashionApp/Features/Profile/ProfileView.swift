@@ -11,6 +11,7 @@ struct ProfileView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
     @StateObject private var cloudDiagnostics = CloudKitAccountDiagnostics()
+    @StateObject private var storageStatusViewModel = StorageArchitectureStatusViewModel()
 
     @Query(sort: \CloudProductMediaAsset.updatedAt, order: .reverse)
     private var cloudMediaAssets: [CloudProductMediaAsset]
@@ -48,6 +49,62 @@ struct ProfileView: View {
                     )
                     .font(DesignSystem.Typography.caption())
                     .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+
+                Section("Backend storage routing") {
+                    if let status = storageStatusViewModel.status {
+                        LabeledContent("Write provider") {
+                            Text(status.activeWriteProvider)
+                                .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        }
+                        LabeledContent("Read provider") {
+                            Text(status.activeReadProvider)
+                                .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        }
+                        LabeledContent("Failover") {
+                            Text(status.failoverEnabled ? "Enabled" : "Disabled")
+                                .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        }
+
+                        ForEach(status.providers) { provider in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(provider.provider.capitalized) · \(provider.status.capitalized)")
+                                    .font(DesignSystem.Typography.headline())
+                                Text(provider.capabilities.joined(separator: " • "))
+                                    .font(DesignSystem.Typography.caption())
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                if let cloudKit = provider.cloudKit {
+                                    Text("CloudKit: \(cloudKit.containerID) · \(cloudKit.replicationMode)")
+                                        .font(DesignSystem.Typography.caption())
+                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    } else if storageStatusViewModel.isLoading {
+                        ProgressView("Loading storage backend status...")
+                    } else {
+                        Text("Storage backend status unavailable. Tap refresh to query backend.")
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    }
+
+                    if let blueprint = storageStatusViewModel.blueprint {
+                        Text("Schema: \(blueprint.relationalCore.engine) · \(blueprint.relationalCore.tables.count) tables")
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    }
+
+                    if let error = storageStatusViewModel.lastError {
+                        Text(error)
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(.red)
+                    }
+
+                    Button("Refresh backend storage status") {
+                        Task { await storageStatusViewModel.refresh() }
+                    }
+                    .disabled(storageStatusViewModel.isLoading)
                 }
 
                 Section("Product media metrics (\(cloudMediaAssets.count) rows)") {
@@ -111,6 +168,7 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .task {
                 await cloudDiagnostics.refresh()
+                await storageStatusViewModel.refresh()
             }
             .navigationDestination(for: AppRouter.Destination.self) { destination in
                 switch destination {

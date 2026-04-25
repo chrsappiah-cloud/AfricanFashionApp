@@ -87,6 +87,10 @@ private struct MainTabView: View {
             }
         case .catalog:
             CatalogView()
+        case .discussion:
+            NavigationStack {
+                DiscussionView()
+            }
         case .cart:
             CartView()
         case .wishlist:

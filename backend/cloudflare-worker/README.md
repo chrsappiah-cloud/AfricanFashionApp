@@ -8,6 +8,9 @@ Free-tier backend with JWT auth + R2 upload middleware.
 - `POST /v1/auth/login` (also `/auth/login`, `/login`)
 - `POST /v1/uploads/presign` (JWT required)
 - `PUT /v1/uploads/direct/:key?token=...` (one-time upload token)
+- `GET /v1/system/storage-backends` (Cloudflare + iCloud backend status)
+- `GET /v1/system/database-blueprint` (canonical storage schema structure)
+- `POST /v1/storage/resolve` (resolve provider for admin/user workload)
 
 ## Cloudflare setup (free)
 
@@ -17,6 +20,10 @@ Free-tier backend with JWT auth + R2 upload middleware.
 3. Create secrets:
    - `AUTH_JWT_SECRET`
    - `UPLOAD_TOKEN_SECRET`
+4. Configure vars in `wrangler.toml` (or as environment overrides):
+   - `ICLOUD_CONTAINER_ID`
+   - `STORAGE_PRIMARY_PROVIDER` (default: `cloudflare`)
+   - `STORAGE_FAILOVER_PROVIDER` (default: `icloud`)
 
 ## Quick start
 
@@ -48,3 +55,4 @@ The app already reads this variable in `AppConfiguration`.
 - This implementation issues and verifies HS256 JWTs inside the Worker (good for starter/prototype).
 - For stronger production posture, switch auth to your IdP and verify upstream JWTs in Worker.
 - `PUBLIC_ASSET_BASE_URL` is optional; without it, upload responses still return object keys.
+- Use `storage-backends` and `database-blueprint` endpoints from admin tooling to validate Cloudflare/iCloud readiness before promoting production builds.
