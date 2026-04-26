@@ -2,9 +2,12 @@ import SwiftUI
 import WebKit
 
 enum WCSPlatformURL {
+    /// UserDefaults override key (debug / internal builds).
+    static let userDefaultsOverrideKey = "wcs_platform_base_url"
+
     /// Resolution order: runtime UserDefaults → `WCSPlatformBaseURL` in Info.plist → local Next.js dev server.
     static var `default`: URL {
-        if let s = UserDefaults.standard.string(forKey: "wcs_platform_base_url")?
+        if let s = UserDefaults.standard.string(forKey: userDefaultsOverrideKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !s.isEmpty,
            let u = URL(string: s) {
@@ -17,6 +20,12 @@ enum WCSPlatformURL {
             }
         }
         return URL(string: "http://127.0.0.1:3000")!
+    }
+
+    /// `true` when the shell is pointed at the local Next.js default (not production HTTPS).
+    static var isLocalDevDefault: Bool {
+        let u = Self.default
+        return u.host == "127.0.0.1" || u.host == "localhost"
     }
 }
 
@@ -39,16 +48,31 @@ struct WebPlatformRootView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
+        if #available(iOS 15.4, *) {
+            config.mediaTypesRequiringUserActionForPlayback = []
+        }
+        let prefs = WKWebpagePreferences()
+        prefs.allowsContentJavaScript = true
+        config.defaultWebpagePreferences = prefs
+
         let web = WKWebView(frame: .zero, configuration: config)
         web.navigationDelegate = context.coordinator
         web.isOpaque = false
         web.backgroundColor = .clear
-        web.scrollView.backgroundColor = UIColor(red: 0.05, green: 0.12, blue: 0.23, alpha: 1)
+        web.scrollView.backgroundColor = WCSWebChrome.background
+        web.scrollView.contentInsetAdjustmentBehavior = .automatic
+        web.allowsBackForwardNavigationGestures = true
+        if #available(iOS 15.0, *) {
+            web.underPageBackgroundColor = WCSWebChrome.background
+        }
+
         context.coordinator.webView = web
         context.coordinator.lastReloadToken = reloadToken
         context.coordinator.isLoading = _isLoading
         context.coordinator.loadError = _loadError
-        web.load(URLRequest(url: WCSPlatformURL.default))
+
+        let request = URLRequest(url: WCSPlatformURL.default)
+        web.load(request)
         return web
     }
 
@@ -60,7 +84,7 @@ struct WebPlatformRootView: UIViewRepresentable {
             context.coordinator.lastReloadToken = reloadToken
             isLoading = true
             loadError = nil
-            webView.reload()
+            webView.load(URLRequest(url: WCSPlatformURL.default))
         }
     }
 }
@@ -82,14 +106,14 @@ extension WebPlatformRootView.Coordinator {
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         DispatchQueue.main.async {
             self.isLoading?.wrappedValue = false
-            self.loadError?.wrappedValue = error.localizedDescription
+            self.loadError?.wrappedValue = WCSErrorFormatting.userFacingMessage(for: error)
         }
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         DispatchQueue.main.async {
             self.isLoading?.wrappedValue = false
-            self.loadError?.wrappedValue = error.localizedDescription
+            self.loadError?.wrappedValue = WCSErrorFormatting.userFacingMessage(for: error)
         }
     }
 }

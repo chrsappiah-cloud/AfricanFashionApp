@@ -34,6 +34,12 @@ Deployment runbook for the **WCS Platform** iOS app (`WKWebView` shell) in this 
 
 **Launch screen:** `LaunchScreenBackground` color in `Assets.xcassets` matches the in-app web chrome; `Info.plist` `UILaunchScreen` references `UIColorName` `LaunchScreenBackground`.
 
+### iOS shell behavior
+
+- **Reload** resolves **`WCSPlatformURL.default`** again (UserDefaults → plist → local dev), then loads that URL—not only `WKWebView.reload()`—so config changes apply without restarting.
+- **Chrome:** shared colors in `WCSWebChrome.swift`; dark appearance and teal **tint** in `ContentView`.
+- **Errors:** `WCSErrorFormatting` maps common `NSURLError` cases to short user copy; local-only base URL shows a production reminder banner.
+
 ---
 
 ## 3) Before you archive (critical)

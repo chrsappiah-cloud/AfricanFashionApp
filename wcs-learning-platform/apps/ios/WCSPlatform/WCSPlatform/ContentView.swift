@@ -15,52 +15,77 @@ struct ContentView: View {
             .ignoresSafeArea()
 
             if let message = loadError {
-                VStack(spacing: 16) {
-                    Text("Could not load")
-                        .font(.headline)
-                    Text(message)
-                        .font(.caption)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
-                    Text(WCSPlatformURL.default.absoluteString)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .multilineTextAlignment(.center)
-                    Button("Try again") {
-                        loadError = nil
-                        reloadToken += 1
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding(24)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .padding()
+                errorOverlay(message: message)
             } else if isLoading {
-                ProgressView("Loading…")
-                    .padding(20)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                loadingOverlay
             }
 
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        loadError = nil
-                        reloadToken += 1
-                    } label: {
-                        Image(systemName: "arrow.clockwise.circle.fill")
-                            .font(.title)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .padding(.top, 12)
-                    .padding(.trailing, 12)
-                    .accessibilityLabel("Reload web content")
-                }
-                Spacer()
+            reloadControl
+        }
+        .preferredColorScheme(.dark)
+        .tint(Color(uiColor: WCSWebChrome.accent))
+    }
+
+    private var loadingOverlay: some View {
+        ProgressView("Loading…")
+            .padding(22)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .accessibilityElement(children: .combine)
+    }
+
+    private func errorOverlay(message: String) -> some View {
+        VStack(spacing: 16) {
+            Text("Could not load")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Text(message)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+            Text(WCSPlatformURL.default.absoluteString)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .textSelection(.enabled)
+            if WCSPlatformURL.isLocalDevDefault {
+                Text("Using local dev URL. Set WCSPlatformBaseURL in Info.plist for production.")
+                    .font(.caption2)
+                    .foregroundStyle(.orange.opacity(0.9))
+                    .multilineTextAlignment(.center)
             }
+            Button("Try again") {
+                loadError = nil
+                reloadToken += 1
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(24)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(20)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var reloadControl: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Button {
+                    loadError = nil
+                    reloadToken += 1
+                } label: {
+                    Image(systemName: "arrow.clockwise.circle.fill")
+                        .font(.title2)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                        .padding(11)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .padding(.top, 6)
+                .padding(.trailing, 10)
+                .accessibilityLabel("Reload web content")
+                .accessibilityHint("Loads the platform URL again from settings.")
+            }
+            Spacer()
         }
     }
 }

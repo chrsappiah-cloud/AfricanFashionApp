@@ -12,6 +12,8 @@
 		A00000000000000000000003 /* WebPlatformRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000003 /* WebPlatformRootView.swift */; };
 		A00000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000004 /* Assets.xcassets */; };
 		A00000000000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000006 /* PrivacyInfo.xcprivacy */; };
+		A00000000000000000000006 /* WCSWebChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000007 /* WCSWebChrome.swift */; };
+		A00000000000000000000007 /* WCSErrorFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000008 /* WCSErrorFormatting.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +23,8 @@
 		B00000000000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B00000000000000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B00000000000000000000006 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B00000000000000000000007 /* WCSWebChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSWebChrome.swift; sourceTree = "<group>"; };
+		B00000000000000000000008 /* WCSErrorFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSErrorFormatting.swift; sourceTree = "<group>"; };
 		B00000000000000000000010 /* WCSPlatform.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WCSPlatform.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -49,6 +53,8 @@
 				B00000000000000000000001 /* WCSPlatformApp.swift */,
 				B00000000000000000000002 /* ContentView.swift */,
 				B00000000000000000000003 /* WebPlatformRootView.swift */,
+				B00000000000000000000007 /* WCSWebChrome.swift */,
+				B00000000000000000000008 /* WCSErrorFormatting.swift */,
 				B00000000000000000000004 /* Assets.xcassets */,
 				B00000000000000000000005 /* Info.plist */,
 				B00000000000000000000006 /* PrivacyInfo.xcprivacy */,
@@ -137,6 +143,8 @@
 				A00000000000000000000001 /* WCSPlatformApp.swift in Sources */,
 				A00000000000000000000002 /* ContentView.swift in Sources */,
 				A00000000000000000000003 /* WebPlatformRootView.swift in Sources */,
+				A00000000000000000000006 /* WCSWebChrome.swift in Sources */,
+				A00000000000000000000007 /* WCSErrorFormatting.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
