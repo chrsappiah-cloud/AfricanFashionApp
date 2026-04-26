@@ -2,6 +2,8 @@
 
 Deployment runbook for the **WCS Platform** iOS app (`WKWebView` shell) in this monorepo. **App Review copy** for App Store Connect is in **`APP_STORE_REVIEW.md`**.
 
+**Submission-day checklist (both apps in this repo):** open **`APP_STORE_SUBMISSION.md`** at the **parent repository root** (`AfricanFashionApp/APP_STORE_SUBMISSION.md` when the monorepo is checked out as `AfricanFashionApp`).
+
 ---
 
 ## 1) Project identifiers

@@ -1,6 +1,6 @@
 # Apple App Store deployment — AfricanFashionApp
 
-This document is the **deployment runbook** for shipping **AfricanFashionApp** to TestFlight and the public App Store. For marketing copy (description, keywords, social posts), use **`LAUNCH_MATERIALS.md`** in the same folder. For the separate **WCS Learning** iOS shell (`WKWebView` + monorepo), see **`wcs-learning-platform/production/apple/APPLE_STORE_PRODUCTION.md`**.
+This document is the **deployment runbook** for shipping **AfricanFashionApp** to TestFlight and the public App Store. For a **single submission-day checklist** covering this app and **WCS Platform**, see **`APP_STORE_SUBMISSION.md`** at the repository root. For marketing copy (description, keywords, social posts), use **`LAUNCH_MATERIALS.md`** in the same folder. For the separate **WCS Learning** iOS shell (`WKWebView` + monorepo), see **`wcs-learning-platform/production/apple/APPLE_STORE_PRODUCTION.md`**.
 
 ---
 
@@ -206,6 +206,7 @@ Install/launch with **Xcode** or `xcrun simctl` as needed.
 
 | Document | Purpose |
 |----------|---------|
+| `../APP_STORE_SUBMISSION.md` | End-to-end submission checklist (both iOS apps) |
 | `LAUNCH_MATERIALS.md` | App Store listing copy, TestFlight notes, social copy |
 | `wcs-learning-platform/production/apple/APPLE_STORE_PRODUCTION.md` | WCS Platform iOS wrapper, assets, CLI export |
 | `wcs-learning-platform/production/apple/APP_STORE_REVIEW.md` | Paste-up notes for App Store Connect reviewers (WCS) |
