@@ -1,5 +1,7 @@
 # AfricanFashionApp Launch Materials
 
+Technical deployment (archive, upload, TestFlight, review): **`APPLE_PRODUCTION.md`**.
+
 Production-ready launch copy based on current in-app positioning:
 - "Rooted in African craft, designed for global style."
 - "Authentic craft, modern design, and cultural storytelling."

@@ -24,6 +24,8 @@
 	<string>public.app-category.business</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Upload Studio needs photo library access to stage seller imagery with provenance metadata.</string>
 	<key>UIApplicationSceneManifest</key>
