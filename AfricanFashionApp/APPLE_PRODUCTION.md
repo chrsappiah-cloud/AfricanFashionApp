@@ -207,4 +207,5 @@ Install/launch with **Xcode** or `xcrun simctl` as needed.
 | Document | Purpose |
 |----------|---------|
 | `LAUNCH_MATERIALS.md` | App Store listing copy, TestFlight notes, social copy |
-| `wcs-learning-platform/production/apple/APPLE_STORE_PRODUCTION.md` | WCS Platform iOS wrapper + monorepo assets |
+| `wcs-learning-platform/production/apple/APPLE_STORE_PRODUCTION.md` | WCS Platform iOS wrapper, assets, CLI export |
+| `wcs-learning-platform/production/apple/APP_STORE_REVIEW.md` | Paste-up notes for App Store Connect reviewers (WCS) |
