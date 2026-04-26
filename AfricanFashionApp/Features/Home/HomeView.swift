@@ -326,6 +326,45 @@ struct HomeView: View {
                     .padding(.horizontal, 4)
                 }
 
+                if !viewModel.oxfordOpenAlexScholarship.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Oxford-affiliated scholarship (OpenAlex)")
+                            .font(DesignSystem.Typography.title())
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+
+                        Text("Recent open metadata indexed via OpenAlex for Oxford-linked research in textile and fashion heritage.")
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(viewModel.oxfordOpenAlexScholarship) { work in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(work.title)
+                                        .font(DesignSystem.Typography.headline())
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    if let year = work.publicationYear {
+                                        Text("Year: \(year)")
+                                            .font(DesignSystem.Typography.caption())
+                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                    }
+                                    if let venue = work.hostVenue {
+                                        Text(venue)
+                                            .font(DesignSystem.Typography.caption())
+                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                    }
+                                    if let url = work.landingPageURL {
+                                        Link("Open publication page", destination: url)
+                                            .font(DesignSystem.Typography.caption())
+                                            .tint(DesignSystem.Colors.accentSecondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+
                 if !viewModel.moduleLessonVideoResults.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Build-up · Phase 4 — lesson video from script")
@@ -375,6 +414,39 @@ struct HomeView: View {
                         }
                     }
                     .padding(.horizontal, 4)
+                } else if !viewModel.moduleLessonFallbackScriptLines.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Build-up · Phase 4 — lesson video from script")
+                            .font(DesignSystem.Typography.title())
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+
+                        Text("No YouTube Data API key detected, so each lesson query is loaded as live YouTube search results.")
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+                        ForEach(viewModel.moduleLessonFallbackScriptLines) { scriptLine in
+                            GlassCard {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(scriptLine.lessonTitle)
+                                        .font(DesignSystem.Typography.headline())
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    Text(scriptLine.moduleTitle)
+                                        .font(DesignSystem.Typography.caption())
+                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                    Text("Query: \(scriptLine.youTubeSearchQuery)")
+                                        .font(DesignSystem.Typography.caption())
+                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                        .lineLimit(3)
+
+                                    YouTubeSearchResultsWebView(searchQuery: scriptLine.youTubeSearchQuery)
+                                        .frame(height: 300)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
                 }
             }
             .padding(.horizontal, 16)
@@ -392,6 +464,9 @@ struct HomeView: View {
         }
         .task {
             await viewModel.loadCrossrefScholarshipHighlights()
+        }
+        .task {
+            await viewModel.loadOxfordOpenAlexScholarshipHighlights()
         }
         .task {
             await viewModel.loadModuleVideoPipelineFromScriptIfKeyed()

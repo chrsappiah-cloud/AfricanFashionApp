@@ -72,9 +72,13 @@ final class HomeViewModel: ObservableObject {
 
     /// Crossref open metadata (academic corpus) complementing runway media.
     @Published private(set) var crossrefOpenScholarship: [CrossrefWorkSummary] = []
+    /// OpenAlex works filtered to Oxford affiliation (external scholarly API).
+    @Published private(set) var oxfordOpenAlexScholarship: [OpenAlexWorkSummary] = []
 
     /// Final build-up phase: each scripted lesson resolved to YouTube candidates via Data API + embeds.
     @Published private(set) var moduleLessonVideoResults: [LessonVideoDiscoveryResult] = []
+    /// Fallback script lines used when no YouTube Data API key is configured.
+    @Published private(set) var moduleLessonFallbackScriptLines: [CourseLessonScriptLine] = []
 
     func loadYouTubeAPISnippetsIfConfigured() async {
         guard YouTubeSearchAPIClient.resolveAPIKey() != nil else { return }
@@ -97,7 +101,7 @@ final class HomeViewModel: ObservableObject {
     func loadCrossrefScholarshipHighlights() async {
         do {
             crossrefOpenScholarship = try await CrossrefWorksAPIClient.searchWorks(
-                query: "fashion textiles Africa museum open access",
+                query: "Oxford fashion textiles museum open access",
                 rows: 4
             )
         } catch {
@@ -105,9 +109,21 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
+    func loadOxfordOpenAlexScholarshipHighlights() async {
+        do {
+            oxfordOpenAlexScholarship = try await OpenAlexWorksAPIClient.searchRecentWorksForInstitution(
+                searchQuery: "fashion textile heritage",
+                perPage: 4
+            )
+        } catch {
+            oxfordOpenAlexScholarship = []
+        }
+    }
+
     func loadModuleVideoPipelineFromScriptIfKeyed() async {
         guard YouTubeSearchAPIClient.resolveAPIKey() != nil else {
             moduleLessonVideoResults = []
+            moduleLessonFallbackScriptLines = CourseScriptSample.wcsFashionHeritageScript
             return
         }
         do {
@@ -115,8 +131,10 @@ final class HomeViewModel: ObservableObject {
                 scriptLines: CourseScriptSample.wcsFashionHeritageScript,
                 maxResultsPerLesson: 2
             )
+            moduleLessonFallbackScriptLines = []
         } catch {
             moduleLessonVideoResults = []
+            moduleLessonFallbackScriptLines = CourseScriptSample.wcsFashionHeritageScript
         }
     }
 }
