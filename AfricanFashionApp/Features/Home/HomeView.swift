@@ -291,6 +291,91 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 4)
                 }
+
+                if !viewModel.crossrefOpenScholarship.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Open scholarship (Crossref)")
+                            .font(DesignSystem.Typography.title())
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+
+                        Text("Live DOI metadata from Crossref — no API key. Pair with Met + YouTube strips for academic context.")
+                            .font(DesignSystem.Typography.caption())
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(viewModel.crossrefOpenScholarship) { work in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(work.title)
+                                        .font(DesignSystem.Typography.headline())
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    if let doi = work.doi {
+                                        Text(doi)
+                                            .font(DesignSystem.Typography.caption())
+                                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                    }
+                                    if let url = work.resourceURL {
+                                        Link("Open work landing page", destination: url)
+                                            .font(DesignSystem.Typography.caption())
+                                            .tint(DesignSystem.Colors.accentSecondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+
+                if !viewModel.moduleLessonVideoResults.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Build-up · Phase 4 — lesson video from script")
+                            .font(DesignSystem.Typography.title())
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+
+                        Text(
+                            "Each module line from the generated course script is mapped to a live YouTube `search.list` query, then embedded here. "
+                                + "Requires `YOUTUBE_DATA_API_KEY` in your scheme."
+                        )
+                        .font(DesignSystem.Typography.caption())
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+                        ForEach(viewModel.moduleLessonVideoResults) { bundle in
+                            GlassCard {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(bundle.scriptLine.lessonTitle)
+                                        .font(DesignSystem.Typography.headline())
+                                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                    Text(bundle.scriptLine.moduleTitle)
+                                        .font(DesignSystem.Typography.caption())
+                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                    Text("Query: \(bundle.scriptLine.youTubeSearchQuery)")
+                                        .font(DesignSystem.Typography.caption())
+                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                        .lineLimit(3)
+
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 12) {
+                                            ForEach(bundle.snippets) { snippet in
+                                                VStack(alignment: .leading, spacing: 6) {
+                                                    YouTubeEmbedWebView(videoID: snippet.videoID)
+                                                        .frame(width: 260, height: 146)
+                                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                                    Text(snippet.title)
+                                                        .font(DesignSystem.Typography.caption())
+                                                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                                        .lineLimit(2)
+                                                        .frame(width: 260, alignment: .leading)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -304,6 +389,12 @@ struct HomeView: View {
         }
         .task {
             await viewModel.loadYouTubeAPISnippetsIfConfigured()
+        }
+        .task {
+            await viewModel.loadCrossrefScholarshipHighlights()
+        }
+        .task {
+            await viewModel.loadModuleVideoPipelineFromScriptIfKeyed()
         }
     }
 

@@ -16,6 +16,8 @@ struct ProfileView: View {
     @Query(sort: \CloudProductMediaAsset.updatedAt, order: .reverse)
     private var cloudMediaAssets: [CloudProductMediaAsset]
 
+    private var outboundLinks: BrandOutboundLinks { BrandOutboundLinks.current }
+
     init() {
         _cloudMediaAssets = Query(sort: \CloudProductMediaAsset.updatedAt, order: .reverse)
     }
@@ -152,6 +154,25 @@ struct ProfileView: View {
                     }
                     Button("Upload studio") {
                         appRouter.openUploadStudio()
+                    }
+                    NavigationLink {
+                        MembershipPaymentsHubView()
+                    } label: {
+                        Text("Membership & card payouts")
+                    }
+                }
+
+                Section("Social & community") {
+                    if outboundLinks.socialPairs.isEmpty {
+                        Text(
+                            "Set SOCIAL_INSTAGRAM_URL, SOCIAL_TIKTOK_URL, SOCIAL_FACEBOOK_URL, SOCIAL_X_URL, SOCIAL_YOUTUBE_CHANNEL_URL, or SOCIAL_LINKEDIN_URL in your scheme to surface deep links for guests, enrolled learners, and admins."
+                        )
+                        .font(DesignSystem.Typography.caption())
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                    } else {
+                        ForEach(Array(outboundLinks.socialPairs.enumerated()), id: \.offset) { _, pair in
+                            Link(pair.label, destination: pair.url)
+                        }
                     }
                 }
 

@@ -1,0 +1,15 @@
+{
+  "name": "wcs-learning-platform",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @wcs/web dev",
+    "dev:admin": "pnpm --filter @wcs/admin dev",
+    "dev:api": "pnpm --filter @wcs/api start:dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint"
+  }
+}

@@ -8,9 +8,9 @@ This document defines the release workflow for `AfricanFashionApp` on iOS.
 - Team ID configured: `TM2WG7HH96`.
 - Bundle ID: `wcs.AfricanFashionApp`.
 - App Store Connect app created for this bundle ID.
-- App Store Connect API key available (`.p8`) for automated uploads.
+- Optional: App Store Connect API key (`.p8`) for scripted uploads.
 
-## 2) Asset Requirements (App Store Validation)
+## 2) Asset and compliance (App Store validation)
 
 - App icon asset set: `Assets.xcassets/AppIcon.appiconset`
   - Must include required iPhone/iPad sizes.
@@ -18,8 +18,19 @@ This document defines the release workflow for `AfricanFashionApp` on iOS.
   - 1024 icon **must be opaque** (no alpha channel).
 - Launch image asset set: `Assets.xcassets/LaunchImage.imageset`
   - Uses `LaunchImage-2732.png`.
+- Privacy manifest: `PrivacyInfo.xcprivacy` (declares `UserDefaults` usage with reason `CA92.1`).
 
-## 3) Build and Archive (Release)
+## 3) Recommended path: Xcode Organizer
+
+1. Open `AfricanFashionApp.xcodeproj` in Xcode.
+2. Select the **AfricanFashionApp** scheme and destination **Any iOS Device (arm64)**.
+3. **Product → Archive** (uses **Release** automatically).
+4. In the Organizer window: **Distribute App → App Store Connect → Upload** (or **Export** if you need an IPA file).
+5. Follow signing prompts (Automatic is configured in the project).
+
+This is the most reliable path for production signing and symbol upload.
+
+## 4) Build and archive (CLI, Release)
 
 Run from `/Applications/AfricanFashionApp`:
 
@@ -29,54 +40,40 @@ xcodebuild \
   -scheme "AfricanFashionApp" \
   -configuration Release \
   -destination "generic/platform=iOS" \
-  -archivePath "/tmp/AFA-Archive/AfricanFashionApp-signed-clean.xcarchive" \
+  -archivePath "/tmp/AFA-Archive/AfricanFashionApp.xcarchive" \
   -derivedDataPath "/tmp/AFA-DerivedData" \
   BUILD_DIR="/tmp/AFA-Build" \
   archive
 ```
 
-## 4) Export IPA
+## 5) Export IPA (CLI)
 
-Create export options plist (App Store Connect):
+Committed export options (App Store Connect, automatic signing, symbol upload enabled):
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>method</key>
-  <string>app-store-connect</string>
-  <key>teamID</key>
-  <string>TM2WG7HH96</string>
-  <key>signingStyle</key>
-  <string>automatic</string>
-  <key>stripSwiftSymbols</key>
-  <true/>
-  <key>uploadSymbols</key>
-  <false/>
-  <key>uploadBitcode</key>
-  <false/>
-  <key>compileBitcode</key>
-  <false/>
-</dict>
-</plist>
-```
+- `/Applications/AfricanFashionApp/ExportOptions-appstore.plist`
 
 Export:
 
 ```bash
 xcodebuild -exportArchive \
   -allowProvisioningUpdates \
-  -archivePath "/tmp/AFA-Archive/AfricanFashionApp-signed-clean.xcarchive" \
+  -archivePath "/tmp/AFA-Archive/AfricanFashionApp.xcarchive" \
   -exportPath "/tmp/AFA-Export" \
-  -exportOptionsPlist "/tmp/AFA-ExportOptions.plist"
+  -exportOptionsPlist "/Applications/AfricanFashionApp/ExportOptions-appstore.plist"
 ```
 
 Output IPA:
 
 - `/tmp/AFA-Export/AfricanFashionApp.ipa`
 
-## 5) Upload to App Store Connect
+If export fails during symbol packaging, edit the plist and set `uploadSymbols` to `false`, then export again (see troubleshooting below).
+
+## 6) Upload to App Store Connect
+
+- **Preferred:** Xcode Organizer upload, or Apple’s **Transporter** app with the IPA.
+- **Legacy CLI:** `xcrun altool --upload-app` (deprecated; remove from automation when migrating to Transporter or CI that uses the App Store Connect API).
+
+Example `altool` pattern (only if you still rely on it):
 
 ```bash
 xcrun altool --upload-app \
@@ -86,32 +83,32 @@ xcrun altool --upload-app \
   --apiIssuer "<API_ISSUER_ID>"
 ```
 
-Successful upload returns a Delivery UUID.
-
-## 6) Post-Upload Checklist
+## 7) Post-upload checklist
 
 - Wait for build processing in App Store Connect.
 - Add release notes for TestFlight.
 - Assign internal testers first.
-- Complete compliance/export questions.
-- Submit app version for review.
+- Complete compliance and export questions.
+- Submit the app version for review.
 
-## 7) Common Failures and Fixes
+## 8) Common failures and fixes
 
 - `No Team Found in Archive`
-  - Archive was unsigned. Re-archive with signing enabled.
+  - Archive was unsigned. Re-archive with signing enabled and a valid development team.
 - `No profiles for '<bundle-id>' were found`
-  - Use `-allowProvisioningUpdates` and verify account/team access.
+  - Use `-allowProvisioningUpdates` and verify account/team access in Xcode.
 - `CFBundleIconName missing` or missing icon sizes
   - Ensure complete `AppIcon.appiconset` entries and files.
 - `Invalid large app icon ... can't be transparent`
   - Regenerate 1024 icon as opaque (remove alpha channel).
 - `Copy failed` during export (rsync symbols step)
-  - Set `<key>uploadSymbols</key><false/>` in export options.
+  - Set `uploadSymbols` to `false` in `ExportOptions-appstore.plist` for that export only.
 - `No space left on device`
   - Clear `~/Library/Developer/Xcode/DerivedData` and old simulator data.
+- Privacy manifest rejection
+  - Extend `PrivacyInfo.xcprivacy` if new “required reason” APIs are used.
 
-## 8) Manual Simulator Test (Pre-Release)
+## 9) Manual simulator test (pre-release)
 
 ```bash
 xcodebuild \

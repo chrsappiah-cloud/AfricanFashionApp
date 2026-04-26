@@ -70,6 +70,12 @@ final class HomeViewModel: ObservableObject {
     /// Real garment / textile / accessory photography from The Met’s **open** Collection API (no key).
     @Published private(set) var metOpenAccessArtworks: [MetOpenAccessArtwork] = []
 
+    /// Crossref open metadata (academic corpus) complementing runway media.
+    @Published private(set) var crossrefOpenScholarship: [CrossrefWorkSummary] = []
+
+    /// Final build-up phase: each scripted lesson resolved to YouTube candidates via Data API + embeds.
+    @Published private(set) var moduleLessonVideoResults: [LessonVideoDiscoveryResult] = []
+
     func loadYouTubeAPISnippetsIfConfigured() async {
         guard YouTubeSearchAPIClient.resolveAPIKey() != nil else { return }
         do {
@@ -86,5 +92,31 @@ final class HomeViewModel: ObservableObject {
 
     func loadMetFashionHighlights() async {
         metOpenAccessArtworks = await MetMuseumAPIClient.loadOpenAccessFashionHighlights()
+    }
+
+    func loadCrossrefScholarshipHighlights() async {
+        do {
+            crossrefOpenScholarship = try await CrossrefWorksAPIClient.searchWorks(
+                query: "fashion textiles Africa museum open access",
+                rows: 4
+            )
+        } catch {
+            crossrefOpenScholarship = []
+        }
+    }
+
+    func loadModuleVideoPipelineFromScriptIfKeyed() async {
+        guard YouTubeSearchAPIClient.resolveAPIKey() != nil else {
+            moduleLessonVideoResults = []
+            return
+        }
+        do {
+            moduleLessonVideoResults = try await ModuleVideoDiscoveryPipeline.resolveLessonVideos(
+                scriptLines: CourseScriptSample.wcsFashionHeritageScript,
+                maxResultsPerLesson: 2
+            )
+        } catch {
+            moduleLessonVideoResults = []
+        }
     }
 }
