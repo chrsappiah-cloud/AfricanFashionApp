@@ -9,6 +9,7 @@ import SwiftUI
 
 enum AppTab: String, CaseIterable, Identifiable {
     case home
+    case studio
     case catalog
     case discussion
     case cart
@@ -20,6 +21,7 @@ enum AppTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .home: "Home"
+        case .studio: "Studio"
         case .catalog: "Catalog"
         case .discussion: "Discussion"
         case .cart: "Cart"
@@ -31,6 +33,7 @@ enum AppTab: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .home: "sparkles"
+        case .studio: "wand.and.stars"
         case .catalog: "square.grid.2x2"
         case .discussion: "bubble.left.and.bubble.right"
         case .cart: "bag"
@@ -55,7 +58,17 @@ final class AppState: ObservableObject {
     let cloudIdentityUUID: UUID
 
     init(userDefaults: UserDefaults = .standard) {
-        hasCompletedOnboarding = userDefaults.bool(forKey: AppStorageKeys.onboardingComplete)
+        let launchArguments = ProcessInfo.processInfo.arguments
+        let shouldBypassOnboarding = launchArguments.contains("-uiTestingCompleteOnboarding")
+
+        if shouldBypassOnboarding {
+            userDefaults.set(true, forKey: AppStorageKeys.onboardingComplete)
+        }
+
+        hasCompletedOnboarding = shouldBypassOnboarding || userDefaults.bool(forKey: AppStorageKeys.onboardingComplete)
+        if launchArguments.contains("-uiTestingOpenStudio") {
+            selectedTab = .studio
+        }
         regionFocus = userDefaults.string(forKey: AppStorageKeys.regionFocus) ?? "West Africa"
         stylePreferencesNote = userDefaults.string(forKey: AppStorageKeys.stylePreferencesNote) ?? ""
         profileDisplayName = userDefaults.string(forKey: AppStorageKeys.profileDisplayName) ?? ""

@@ -45,6 +45,42 @@ struct AppConfiguration: Sendable {
 
     /// Must match **iCloud** capability and the container in `AfricanFashionApp.entitlements`.
     static let cloudKitContainerIdentifier = "iCloud.wcs.AfricanFashionApp"
+
+    static var fashionTrendForecastURL: URL {
+        if let override = ProcessInfo.processInfo.environment["FASHION_TREND_API_URL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           let url = URL(string: override) {
+            return url
+        }
+        return AppConfiguration.current.environment.apiBaseURL.appendingPathComponent("v1/fashion/trends")
+    }
+
+    static var fashionImageGenerationURL: URL {
+        if let override = ProcessInfo.processInfo.environment["FASHION_IMAGE_API_URL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           let url = URL(string: override) {
+            return url
+        }
+        return AppConfiguration.current.environment.apiBaseURL.appendingPathComponent("v1/fashion/images")
+    }
+
+    static var fashionAIAPIToken: String? {
+        ProcessInfo.processInfo.environment["FASHION_AI_API_TOKEN"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+    }
+
+    static var fashionImageModel: String {
+        ProcessInfo.processInfo.environment["FASHION_IMAGE_MODEL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty ?? "gpt-image-2"
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
+    }
 }
 
 // MARK: - Outbound brand & payments (environment-driven)

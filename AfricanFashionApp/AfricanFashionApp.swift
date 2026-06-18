@@ -18,6 +18,9 @@ struct AfricanFashionApp: App {
             CloudUserProfile.self,
             CloudAdministrationRecord.self,
             CloudProductMediaAsset.self,
+            StudioClientRecord.self,
+            StudioGeneratedLookRecord.self,
+            StudioTrendSignalRecord.self,
         ])
         let cloudBacked = ModelConfiguration(
             schema: schema,

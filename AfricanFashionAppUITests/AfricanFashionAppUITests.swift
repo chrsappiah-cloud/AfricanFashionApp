@@ -31,6 +31,7 @@ final class AfricanFashionAppUITests: XCTestCase {
         completeOnboardingIfNeeded(app)
 
         XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.tabBars.buttons["Studio"].exists)
         XCTAssertTrue(app.tabBars.buttons["Catalog"].exists)
         XCTAssertTrue(app.tabBars.buttons["Cart"].exists)
         XCTAssertTrue(app.tabBars.buttons["Saved"].exists)
@@ -66,6 +67,21 @@ final class AfricanFashionAppUITests: XCTestCase {
     }
 
     @MainActor
+    func testDesignStudioWorkflow() throws {
+        for section in ["generate", "trends", "board"] {
+            let app = launchStudio(section: section)
+            XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
+
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "studio-\(section)-launch"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+
+            app.terminate()
+        }
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
@@ -78,5 +94,18 @@ final class AfricanFashionAppUITests: XCTestCase {
         if enterAtelier.waitForExistence(timeout: 3) {
             enterAtelier.tap()
         }
+    }
+
+    private func launchStudio(section: String) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
+        app.launchArguments += [
+            "-uiTestingCompleteOnboarding",
+            "-uiTestingOpenStudio",
+            "-uiTestingStudioSection",
+            section
+        ]
+        app.launch()
+        return app
     }
 }

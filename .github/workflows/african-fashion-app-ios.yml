@@ -100,3 +100,26 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             -only-testing:AfricanFashionAppTests \
             -resultBundlePath "${{ runner.temp }}/AfricanFashionUnitTests.xcresult"
+
+      - name: UI smoke test (Design Studio)
+        run: |
+          set -eo pipefail
+          xcodebuild test \
+            -project "AfricanFashionApp.xcodeproj" \
+            -scheme "AfricanFashionApp" \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -destination-timeout 300 \
+            -parallel-testing-enabled NO \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -only-testing:AfricanFashionAppUITests/AfricanFashionAppUITests/testDesignStudioWorkflow \
+            -resultBundlePath "${{ runner.temp }}/AfricanFashionDesignStudioUITests.xcresult"
+
+      - name: Upload test result bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: african-fashion-xcresults
+          path: |
+            ${{ runner.temp }}/AfricanFashionUnitTests.xcresult
+            ${{ runner.temp }}/AfricanFashionDesignStudioUITests.xcresult

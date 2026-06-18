@@ -85,6 +85,8 @@ private struct MainTabView: View {
             NavigationStack {
                 HomeView()
             }
+        case .studio:
+            DesignStudioView()
         case .catalog:
             CatalogView()
         case .discussion:
