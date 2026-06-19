@@ -68,6 +68,8 @@ final class AppState: ObservableObject {
         hasCompletedOnboarding = shouldBypassOnboarding || userDefaults.bool(forKey: AppStorageKeys.onboardingComplete)
         if launchArguments.contains("-uiTestingOpenStudio") {
             selectedTab = .studio
+        } else if launchArguments.contains("-uiTestingOpenProfile") {
+            selectedTab = .profile
         }
         regionFocus = userDefaults.string(forKey: AppStorageKeys.regionFocus) ?? "West Africa"
         stylePreferencesNote = userDefaults.string(forKey: AppStorageKeys.stylePreferencesNote) ?? ""

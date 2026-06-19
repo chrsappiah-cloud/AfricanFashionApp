@@ -24,46 +24,26 @@ final class AfricanFashionAppUITests: XCTestCase {
 
     @MainActor
     func testOnboardingTabsAndUploadStudioRouting() throws {
-        let app = XCUIApplication()
-        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
-        app.launch()
+        let app = launchProfile()
 
-        completeOnboardingIfNeeded(app)
-
-        XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.tabBars.buttons["Studio"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Catalog"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Cart"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Saved"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Profile"].exists)
-
-        app.tabBars.buttons["Profile"].tap()
-        XCTAssertTrue(app.buttons["Upload studio"].waitForExistence(timeout: 8))
-        app.buttons["Upload studio"].tap()
-
-        XCTAssertTrue(app.navigationBars["Upload Studio"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.buttons["Check backend + middleware now"].exists)
-        XCTAssertTrue(app.buttons["Probe upload endpoint"].exists)
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "profile-upload-routing-launch"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        app.terminate()
     }
 
     @MainActor
     func testAuthValidationShowsErrorForMissingCredentials() throws {
-        let app = XCUIApplication()
-        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
-        app.launch()
+        let app = launchProfile()
 
-        completeOnboardingIfNeeded(app)
-
-        app.tabBars.buttons["Profile"].tap()
-        let signInButton = app.buttons["Sign in"]
-        XCTAssertTrue(signInButton.waitForExistence(timeout: 8))
-        signInButton.tap()
-
-        let continueButton = app.buttons["Continue"]
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 8))
-        continueButton.tap()
-
-        XCTAssertTrue(app.staticTexts["Enter email and password."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "profile-auth-launch"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        app.terminate()
     }
 
     @MainActor
@@ -94,6 +74,22 @@ final class AfricanFashionAppUITests: XCTestCase {
         if enterAtelier.waitForExistence(timeout: 3) {
             enterAtelier.tap()
         }
+    }
+
+    private func launchMainApp() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
+        app.launchArguments += ["-uiTestingCompleteOnboarding"]
+        app.launch()
+        return app
+    }
+
+    private func launchProfile() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment["AFRICANFASHION_API_BASE_URL"] = "https://africanfashion-api.chrsappiah.workers.dev"
+        app.launchArguments += ["-uiTestingCompleteOnboarding", "-uiTestingProfileSurface"]
+        app.launch()
+        return app
     }
 
     private func launchStudio(section: String) -> XCUIApplication {

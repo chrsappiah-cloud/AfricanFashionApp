@@ -12,7 +12,11 @@ struct RootView: View {
     var body: some View {
         Group {
             if appState.hasCompletedOnboarding {
-                MainTabView()
+                if ProcessInfo.processInfo.arguments.contains("-uiTestingProfileSurface") {
+                    ProfileView()
+                } else {
+                    MainTabView()
+                }
             } else {
                 OnboardingView()
             }
